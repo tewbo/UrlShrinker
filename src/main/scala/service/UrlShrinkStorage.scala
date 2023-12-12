@@ -9,7 +9,7 @@ import model._
 
 trait UrlShrinkStorage {
   def shrinkUrl(url: String): IO[Either[InternalError, ShrunkUrl]]
-  def expandUrl(url: ShrunkUrl): IO[Either[InternalError, String]]
+  def expandUrl(url: String): IO[Either[InternalError, String]]
 }
 
 object UrlShrinkStorage {

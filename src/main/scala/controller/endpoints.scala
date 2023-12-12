@@ -25,7 +25,7 @@ object endpoints {
   }
     val expandUrl: Endpoint[Unit, (String, RequestContext), AppError, String, Any] = {
       endpoint.post
-        .in("expand")
+//        .in("expand")
         .in(path[String])
         .in(header[RequestContext]("X-Request-Id"))
         .errorOut(jsonBody[AppError])
