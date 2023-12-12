@@ -20,7 +20,7 @@ object UrlShrinkController {
       }
 
     override val expandUrl: ServerEndpoint[Any, IO] =
-      endpoints.expandUrl.serverLogic { case (key, context) =>
+      endpoints.expandUrl.serverLogic { case key =>
         storage.expandUrl(key)
       }
 

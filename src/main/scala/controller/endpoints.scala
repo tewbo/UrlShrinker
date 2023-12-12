@@ -2,7 +2,8 @@ package controller
 
 import domain.RequestContext
 import domain.errors.AppError
-import model.{CreatedShrunkUrl, ExistingShrunkUrl, ShrunkUrl, ReceivedShrunkUrl}
+import model.{CreatedShrunkUrl, ExistingShrunkUrl, ReceivedShrunkUrl, ShrunkUrl}
+import org.http4s.headers.`Content-Location`
 import sttp.model.StatusCode
 import sttp.model
 import sttp.tapir.EndpointIO.annotations.statusCode
@@ -23,12 +24,13 @@ object endpoints {
           oneOfVariant(StatusCode.Created, jsonBody[CreatedShrunkUrl])
       ))
   }
-    val expandUrl: Endpoint[Unit, (String, RequestContext), AppError, String, Any] = {
-      endpoint.post
-//        .in("expand")
+    val expandUrl: Endpoint[Unit, String, AppError, String, Any] = {
+      endpoint.get
         .in(path[String])
-        .in(header[RequestContext]("X-Request-Id"))
+//        .in(header[RequestContext]("X-Request-Id"))   // TODO: ask about request-id
         .errorOut(jsonBody[AppError])
-        .out(jsonBody[String])
+//        .out(jsonBody[String])
+        .out(header[String]("Location"))
+        .out(statusCode(StatusCode.Found))
     }
 }

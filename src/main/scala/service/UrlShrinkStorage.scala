@@ -23,17 +23,27 @@ object UrlShrinkStorage {
         IO.pure(ExistingShrunkUrl(LongToShort.getOrElse(url, ""))).attempt
           .map(_.left.map(InternalError.apply)) // todo: rewrite
       } else {
-        LongToShort.put(url, key.url)
-        ShortToLong.put(key.url, url)
+        val correctUrl =
+          if (url.startsWith("http://") || url.startsWith("https://"))
+            url
+          else
+            "http://" + url
+        LongToShort.put(correctUrl, key.url)
+        ShortToLong.put(key.url, correctUrl)
         IO.pure(key).attempt.map(_.left.map(InternalError.apply))
       }
     }
+    // todo: russian letters support
     override def expandUrl(url: String): IO[Either[InternalError, String]] = {
       IO.pure(ShortToLong.getOrElse(url, ""))
         .attempt
         .map(_.left.map(InternalError.apply))
     }
   }
+
+  /*private final class DatabaseImpl extends UrlShrinkStorage {
+
+  }*/
 
   def make(): UrlShrinkStorage = new InMemory()
 }

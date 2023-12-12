@@ -40,19 +40,6 @@ object Application extends IOApp {
 
   private val logger = Logging.Make.plain[IO].forService[Application.type]
 
-  object UrlQueryParamMatcher extends QueryParamDecoderMatcher[String]("url")
-
-  val redirectRoutes: HttpRoutes[IO] = HttpRoutes.of[IO] {
-    case GET -> Root / "redirect" :? UrlQueryParamMatcher(url) =>
-      println(url)
-      val correctUrl =
-        if (url.startsWith("http://") || url.startsWith("https://"))
-          url
-        else
-          "http://" + url
-      TemporaryRedirect(Location(Uri.unsafeFromString(correctUrl)))
-  }
-
   override def run(args: List[String]): IO[ExitCode] = {
     (for {
       _ <- logger.info("Starting service....")
@@ -66,7 +53,7 @@ object Application extends IOApp {
         .toOpenAPI(es = controller.all.map(_.endpoint), "Example", "1.0")
         .toYaml
 
-      routes = Http4sServerInterpreter[IO]().toRoutes(controller.all ++ SwaggerUI[IO](openApi))
+      routes = Http4sServerInterpreter[IO]().toRoutes(SwaggerUI[IO](openApi) ++ controller.all)
       httpApp = Router("/" -> routes).orNotFound
       service: EmberServerBuilder[IO]
         = EmberServerBuilder
