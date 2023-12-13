@@ -3,10 +3,8 @@ package domain
 import cats.syntax.option._
 import derevo.circe.{decoder, encoder}
 import derevo.derive
-import io.circe.Decoder.Result
-import io.circe.{Decoder, Encoder, HCursor, Json}
+import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema
-import sttp.tapir.derevo.schema
 
 object errors {
   @derive(encoder, decoder)
@@ -31,13 +29,6 @@ object errors {
   @derive(encoder, decoder)
   case class DecodedError(override val message: String)
     extends AppError(message = message)
-
-//    implicit val encoder: Encoder[AppError] = (a: AppError) =>
-//      Json.obj(
-//        ("message", Json.fromString(a.message))
-//      )
-
-//    implicit val decoder: Decoder[AppError] = (c: HCursor) => c.downField("message").as[String].map(DecodedError.apply)
 
   implicit val throwableEncoder: Encoder[Throwable] =
     Encoder.encodeString.contramap(_.getMessage)

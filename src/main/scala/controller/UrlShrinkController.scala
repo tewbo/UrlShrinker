@@ -1,10 +1,9 @@
 package controller
 
 import cats.effect.IO
-import domain.errors.{AppError, InternalError}
-import sttp.tapir.server.ServerEndpoint
 import model._
 import service.UrlShrinkStorage
+import sttp.tapir.server.ServerEndpoint
 
 trait UrlShrinkController {
   def shrinkUrl: ServerEndpoint[Any, IO]
@@ -21,7 +20,7 @@ object UrlShrinkController {
         storage.insertUrlRecord(correctUrl)
       }
 
-    override def expandUrl: ServerEndpoint[Any, IO] = {
+    override def expandUrl: ServerEndpoint[Any, IO] = {   // TODO: reject infinite redirections
       endpoints.expandUrl.serverLogic { case key =>
         storage.getFullUrlByUrlKey(key)
       }

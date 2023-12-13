@@ -16,11 +16,8 @@ import sttp.tapir.server.http4s.Http4sServerInterpreter
 import sttp.tapir.swagger.SwaggerUI
 import tofu.logging.Logging
 
-import scala.collection.mutable
-
 object Application extends IOApp {
   private type Init[A] = IO[A]
-  private type App[A] = IO[A]
 
   private val logger = Logging.Make.plain[IO].forService[Application.type]
 
@@ -54,21 +51,5 @@ object Application extends IOApp {
         .withPort(Port.fromInt(server.port).getOrElse(port"8080"))
         .withHttpApp(httpApp)
     } yield service).flatMap(_.build.useForever).as(ExitCode.Success)
-  }
-}
-
-object Meow {
-  sealed trait Cat {
-    val meow: String
-  }
-
-  case class Kitten(meow: String) extends Cat
-
-  case class WhiteCat(meow: String) extends Cat
-
-  def main(args: Array[String]): Unit = {
-    val mapa = mutable.Map[Cat, Int]()
-    mapa.put(WhiteCat("meow"), 1)
-    println(mapa.getOrElse(WhiteCat("meow"), 2))
   }
 }

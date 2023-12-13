@@ -2,8 +2,6 @@ package model
 
 import derevo.circe.{decoder, encoder}
 import derevo.derive
-import doobie.Write
-import doobie.util.Read
 import sttp.tapir.{Codec, CodecFormat, Schema}
 
 

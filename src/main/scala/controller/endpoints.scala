@@ -2,23 +2,18 @@ package controller
 
 import domain.RequestContext
 import domain.errors.AppError
-import org.http4s.headers.`Content-Location`
 import model._
 import sttp.model.StatusCode
-import sttp.tapir.EndpointIO.annotations.statusCode
-import sttp.tapir.CodecFormat.TextPlain._
-import sttp.tapir._
-import sttp.tapir.codec.newtype.codecForNewType
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe._
-import sttp.tapir.{PublicEndpoint, endpoint, oneOf, oneOfVariant, path, stringBody, stringToPath}
+import sttp.tapir._
 
 object endpoints {
   val shrinkUrl: Endpoint[Unit, (RequestContext, String), AppError, ComputedUrlKey, Any] = {
     endpoint.post
       .in("shrink")
       .in(header[RequestContext]("X-Request-Id"))
-      .in(jsonBody[String])
+      .in(jsonBody[String])     // TODO: ask how to parse full url
       .errorOut(jsonBody[AppError])
       .out(oneOf[ComputedUrlKey](
           oneOfVariant(StatusCode.Ok, jsonBody[ExistingUrlKey]),
