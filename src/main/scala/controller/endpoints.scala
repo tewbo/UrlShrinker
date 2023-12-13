@@ -2,12 +2,13 @@ package controller
 
 import domain.RequestContext
 import domain.errors.AppError
-import model.{CreatedShrunkUrl, ExistingShrunkUrl, ReceivedShrunkUrl, ShrunkUrl}
 import org.http4s.headers.`Content-Location`
 import model._
 import sttp.model.StatusCode
 import sttp.tapir.EndpointIO.annotations.statusCode
+import sttp.tapir.CodecFormat.TextPlain._
 import sttp.tapir._
+import sttp.tapir.codec.newtype.codecForNewType
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe._
 import sttp.tapir.{PublicEndpoint, endpoint, oneOf, oneOfVariant, path, stringBody, stringToPath}
@@ -24,13 +25,12 @@ object endpoints {
           oneOfVariant(StatusCode.Created, jsonBody[CreatedUrlKey])
       ))
   }
-    val expandUrl: Endpoint[Unit, String, AppError, String, Any] = {
+    val expandUrl: Endpoint[Unit, UrlKey, AppError, FullUrl, Any] = {
       endpoint.get
-        .in(path[String])
+        .in(path[UrlKey])
 //        .in(header[RequestContext]("X-Request-Id"))   // TODO: ask about request-id
         .errorOut(jsonBody[AppError])
-//        .out(jsonBody[String])
-        .out(header[String]("Location"))
+        .out(header[FullUrl]("Location"))  // TODO: add russian letters support
         .out(statusCode(StatusCode.Found))
     }
 }

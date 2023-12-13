@@ -3,35 +3,33 @@ package controller
 import cats.effect.IO
 import domain.errors.{AppError, InternalError}
 import sttp.tapir.server.ServerEndpoint
-import service.UrlShrinkStorage
 import model._
+import service.UrlShrinkStorage
 
 trait UrlShrinkController {
   def shrinkUrl: ServerEndpoint[Any, IO]
-//  def expandUrl: ServerEndpoint[Any, IO]
+  def expandUrl: ServerEndpoint[Any, IO]
 
   def all: List[ServerEndpoint[Any, IO]]
 }
 
 object UrlShrinkController {
-  final class Impl() extends UrlShrinkController {
+  final class Impl(storage: UrlShrinkStorage) extends UrlShrinkController {
     override val shrinkUrl: ServerEndpoint[Any, IO] =
       endpoints.shrinkUrl.serverLogic { case (context, url) =>
-//        storage.shrinkUrl(url)
         val correctUrl = FullUrl(url)
-        val key = CreatedUrlKey("123")
-        IO.pure(key).attempt.map(_.left.map(InternalError.apply))
+        storage.insertUrlRecord(correctUrl)
       }
 
-    /*override val expandUrl: ServerEndpoint[Any, IO] =
+    override def expandUrl: ServerEndpoint[Any, IO] = {
       endpoints.expandUrl.serverLogic { case key =>
-        storage.expandUrl(key)
-      }*/
+        storage.getFullUrlByUrlKey(key)
+      }
+    }
 
     override val all: List[ServerEndpoint[Any, IO]] =
-//      List(shrinkUrl, expandUrl)
-    List(shrinkUrl)
+      List(shrinkUrl, expandUrl)
   }
 
-  def make(): UrlShrinkController = new Impl()
+  def make(storage: UrlShrinkStorage): UrlShrinkController = new Impl(storage)
 }

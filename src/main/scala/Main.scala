@@ -38,7 +38,7 @@ object Application extends IOApp {
       sql = UrlShrinkSql.make
       urlKeyGenerator = UrlKeyGenerator.make
       storage = UrlShrinkStorage.make(sql, transactor, urlKeyGenerator)
-      controller = UrlShrinkController.make()
+      controller = UrlShrinkController.make(storage)
 
       server <- Sync[IO].delay(conf.at("server").loadOrThrow[ServerConf])
 
