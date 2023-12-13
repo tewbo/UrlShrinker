@@ -1,38 +1,22 @@
 import cats.effect.kernel.Sync
 import cats.effect.{ExitCode, IO, IOApp}
 import com.comcast.ip4s.{IpLiteralSyntax, Port}
-import config.ServerConf
+import config.{DbConf, ServerConf}
 import controller.UrlShrinkController
-import io.circe.Encoder.AsObject.importedAsObjectEncoder
-import io.circe._
-import io.circe.generic.auto.exportEncoder
-import org.http4s._
-import org.http4s.implicits._
-import io.circe.generic.semiauto._
-import org.http4s.LiteralSyntaxMacros.uri
-import org.http4s.Method.GET
-import org.http4s.headers.Location
-
-import scala.collection.mutable
-//import org.http4s.Status.{Ok, TemporaryRedirect}
-import org.http4s._
+import dao.UrlShrinkSql
+import doobie.util.transactor.Transactor
 import org.http4s.ember.server.EmberServerBuilder
-import org.http4s.implicits.http4sLiteralsSyntax
-import cats.effect._
-import cats.syntax.all._
-import org.http4s._, org.http4s.dsl.io._, org.http4s.implicits._
+import org.http4s.implicits._
 import org.http4s.server.Router
 import pureconfig.ConfigSource
-import service.UrlShrinkStorage
+import service.{UrlKeyGenerator, UrlShrinkStorage}
 import sttp.apispec.openapi.circe.yaml.RichOpenAPI
 import sttp.tapir.docs.openapi.OpenAPIDocsInterpreter
-import sttp.tapir.generic.auto.schemaForCaseClass
-import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 import sttp.tapir.swagger.SwaggerUI
-import sttp.tapir.{Endpoint, endpoint, stringBody}
 import tofu.logging.Logging
-import org.http4s.client.middleware.FollowRedirect
+
+import scala.collection.mutable
 
 object Application extends IOApp {
   private type Init[A] = IO[A]
@@ -44,10 +28,19 @@ object Application extends IOApp {
     (for {
       _ <- logger.info("Starting service....")
       conf = ConfigSource.default
-      server <- Sync[IO].delay(conf.at("server").loadOrThrow[ServerConf])
-      storage = UrlShrinkStorage.make()
-      controller = UrlShrinkController.make(storage)
+      db <- Sync[Init].delay(conf.at("db").loadOrThrow[DbConf])
+      transactor = Transactor.fromDriverManager[IO](
+        db.driver,
+        db.url,
+        db.user,
+        db.password
+      )
+      sql = UrlShrinkSql.make
+      urlKeyGenerator = UrlKeyGenerator.make
+      storage = UrlShrinkStorage.make(sql, transactor, urlKeyGenerator)
+      controller = UrlShrinkController.make()
 
+      server <- Sync[IO].delay(conf.at("server").loadOrThrow[ServerConf])
 
       openApi = OpenAPIDocsInterpreter()
         .toOpenAPI(es = controller.all.map(_.endpoint), "Example", "1.0")

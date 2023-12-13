@@ -1,36 +1,67 @@
 package dao
 
-import cats.{Applicative, Monad}
 import cats.syntax.applicative._
 import cats.syntax.either._
-import domain._
 import domain.errors._
 import doobie._
 import doobie.implicits._
+import model.{FullUrl, UrlKey, UrlRecordId}
 
 trait UrlShrinkSql {
-  def insertShrunkUrlSql(key: String, fullUrl: String): ConnectionIO[Either[Error, String]]
+  def insertUrlKey(key: UrlKey, fullUrl: FullUrl): doobie.ConnectionIO[Either[UrlKeyAlreadyExists, UrlKey]]
 
-  def getShrunkUrlSql(url: String): ConnectionIO[String]
+  def getUrlKeyByFullUrl(fullUrl: FullUrl): ConnectionIO[Option[UrlKey]]
 
-  def getFullUrlSql(key: String): ConnectionIO[String]
+  def getFullUrlByUrlKey(urlKey: UrlKey): ConnectionIO[Option[FullUrl]]
+
+  def getTotalRecordCount: ConnectionIO[Long]
 }
 
 object UrlShrinkSql {
   object sqls {
-    def insertShrunkUrlSql(key: String, fullUrl: String): Update0 =
+    def insertUrlKeySql(key: UrlKey, fullUrl: FullUrl): Update0 =
       sql"""insert into URLS (url_key, full_url)
-          values ($key, $fullUrl)
+          values (${key.string}, ${fullUrl.string})
         """.update
 
-    def getShrunkUrlSql(url: String): Query0[String] =
+    def getUrlKeyByFullUrlSql(url: FullUrl): Query0[UrlKey] =
       sql"""
-            select keu from URLS where full_url = $url
-        """.query[String]
+            select keu from URLS where full_url = ${url.string}
+        """.query[UrlKey]
 
-    def getFullUrlSql(key: String): Query0[String] =
+    def getFullUrlByUrlKeySql(key: UrlKey): Query0[FullUrl] =
       sql"""
-            select full_url from URLS where url_key = $key
-           """.query[String]
+            select full_url from URLS where url_key = ${key.string}
+           """.query[FullUrl]
+
+    def getTotalRecordCountSql: Query0[Long] =
+      sql"""
+           select count(*) from URLS
+           """.query[Long]
   }
+
+  private final class Impl extends UrlShrinkSql {
+    import sqls._
+
+    override def insertUrlKey(urlKey: UrlKey, fullUrl: FullUrl): ConnectionIO[Either[UrlKeyAlreadyExists, UrlKey]] =
+      getFullUrlByUrlKeySql(urlKey).option.flatMap {
+        case Some(urlKey) =>
+          Left[UrlKeyAlreadyExists, UrlKey](UrlKeyAlreadyExists()).toEitherT[ConnectionIO].value
+        case None =>
+          insertUrlKeySql(urlKey, fullUrl).
+            withUniqueGeneratedKeys[UrlRecordId]("id")
+            .map(id => urlKey.asRight)
+      }
+
+    override def getUrlKeyByFullUrl(fullUrl: FullUrl): ConnectionIO[Option[UrlKey]] =
+      getUrlKeyByFullUrlSql(fullUrl).option
+
+
+    override def getFullUrlByUrlKey(urlKey: UrlKey): ConnectionIO[Option[FullUrl]] =
+      getFullUrlByUrlKeySql(urlKey).option
+
+    override def getTotalRecordCount: ConnectionIO[Long] = getTotalRecordCountSql.unique
+  }
+
+  def make: UrlShrinkSql = new Impl()
 }

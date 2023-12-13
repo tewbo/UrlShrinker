@@ -15,12 +15,15 @@ object errors {
                                   val cause: Option[Throwable] = None
                                 )
 
- /* @derive(encoder, decoder)
-  case class TodoAlreadyExists()
-    extends AppError("Todo with same name and date already exists")
   @derive(encoder, decoder)
-  case class TodoNotFound(id: TodoId)
-    extends AppError(s"Todo with id ${id.value} not found")*/
+  case class UrlKeyAlreadyExists()
+    extends AppError("UrlKey with same name and date already exists")
+
+  @derive(encoder, decoder)
+  case class FullUrlNotFound()
+    extends AppError("Full url not found")
+
+
   @derive(encoder, decoder)
   case class InternalError(
                             cause0: Throwable
@@ -29,12 +32,12 @@ object errors {
   case class DecodedError(override val message: String)
     extends AppError(message = message)
 
-  //  implicit val encoder: Encoder[AppError] = (a: AppError) =>
-  //    Json.obj(
-  //      ("message", Json.fromString(a.message))
-  //    )
-  //
-  //  implicit val decoder: Decoder[AppError] = (c: HCursor) => c.downField("message").as[String].map(DecodedError.apply)
+//    implicit val encoder: Encoder[AppError] = (a: AppError) =>
+//      Json.obj(
+//        ("message", Json.fromString(a.message))
+//      )
+
+//    implicit val decoder: Decoder[AppError] = (c: HCursor) => c.downField("message").as[String].map(DecodedError.apply)
 
   implicit val throwableEncoder: Encoder[Throwable] =
     Encoder.encodeString.contramap(_.getMessage)
