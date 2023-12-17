@@ -1,7 +1,7 @@
 package controller
 
 import cats.effect.IO
-import model._
+import domain.FullUrl
 import service.UrlShrinkStorage
 import sttp.tapir.server.ServerEndpoint
 

@@ -1,9 +1,9 @@
 package dao
 
 import cats.syntax.applicative._
+import domain.{ComputedUrlKey, CreatedUrlKey, ExistingUrlKey, FullUrl, UrlKey, UrlRecordId}
 import doobie._
 import doobie.implicits._
-import model._
 
 trait UrlShrinkSql {
   def insertUrlKey(key: UrlKey, fullUrl: FullUrl): doobie.ConnectionIO[ComputedUrlKey]

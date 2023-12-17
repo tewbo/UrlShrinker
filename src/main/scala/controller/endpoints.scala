@@ -1,8 +1,7 @@
 package controller
 
-import domain.RequestContext
+import domain.{ComputedUrlKey, CreatedUrlKey, ExistingUrlKey, FullUrl, RequestContext, UrlKey}
 import domain.errors.AppError
-import model._
 import sttp.model.StatusCode
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe._

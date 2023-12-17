@@ -1,13 +1,18 @@
 package service
 
+import cats.Id
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import cats.implicits.catsSyntaxEitherId
+import cats.implicits.{catsSyntaxEitherId, catsSyntaxOptionId}
 import dao.UrlShrinkSql
+import domain.{ComputedUrlKey, FullUrl, UrlKey}
 import domain.errors._
 import doobie.syntax.connectionio._
 import doobie.util.transactor.Transactor
-import model._
+import tofu.logging.Logging
+import tofu.logging.Logging.Make
+import tofu.syntax.logging._
+
 
 trait UrlShrinkStorage {
   def insertUrlRecord(fullUrl: FullUrl): IO[Either[AppError, ComputedUrlKey]]
@@ -47,7 +52,50 @@ object UrlShrinkStorage {
     }
   }
 
+
+  private final class LoggingImpl(storage: UrlShrinkStorage)(implicit
+                                                             logging: Logging[IO]
+  ) extends UrlShrinkStorage {
+    private def surroundWithLogs[Error, Res](io: IO[Either[Error, Res]])
+                                            (inputLog: String)
+                                            (errorOutputLog: Error => (String, Option[Throwable]))
+                                            (successOutputLog: Res => String): IO[Either[Error, Res]] =
+      info"$inputLog" *> io.flatTap {
+        case Left(error) =>
+          val (logString: String, throwable: Option[Throwable]) = errorOutputLog(error)
+          throwable.fold(error"$logString")(err =>
+            errorCause"$logString"(err)
+          )
+        case Right(success) => info"${successOutputLog(success)}"
+      }
+
+    override def insertUrlRecord(fullUrl: FullUrl): IO[Either[AppError, ComputedUrlKey]] =
+      surroundWithLogs(storage.insertUrlRecord(fullUrl))(s"insertUrlRecord($fullUrl)") {
+        case InternalError(cause) => ("insertUrlRecord failed", cause.some)
+        case error => ("insertUrlRecord failed", error.cause)
+      } {
+        computedUrlKey: ComputedUrlKey => s"insertUrlRecord succeeded with key ${computedUrlKey.key}"
+      }
+
+
+    override def getFullUrlByUrlKey(urlKey: UrlKey): IO[Either[AppError, FullUrl]] = {
+      surroundWithLogs(storage.getFullUrlByUrlKey(urlKey))(s"getFullUrlByUrlKey($urlKey)") {
+        case InternalError(cause) => ("getFullUrlByUrlKey failed", cause.some)
+        case error => ("getFullUrlByUrlKey failed", error.cause)
+      } {
+        fullUrl: FullUrl => s"getFullUrlByUrlKey succeeded with url ${fullUrl.url}"
+      }
+    }
+
+    override def getTotalRecordCount: Long = {
+      storage.getTotalRecordCount
+    }
+  }
+
   def make(sql: UrlShrinkSql, transactor: Transactor[IO], urlKeyGenerator: UrlKeyGenerator): UrlShrinkStorage = {
-    new DatabaseImpl(sql, transactor, urlKeyGenerator)
+    //    new DatabaseImpl(sql, transactor, urlKeyGenerator)
+    val logs: Make[IO] = Logging.Make.plain[IO]
+    implicit val logging: Id[Logging[IO]] = logs.forService[UrlShrinkStorage]
+    new LoggingImpl(new DatabaseImpl(sql, transactor, urlKeyGenerator))
   }
 }

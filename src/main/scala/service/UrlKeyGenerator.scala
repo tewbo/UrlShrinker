@@ -1,6 +1,6 @@
 package service
 
-import model.{FullUrl, UrlKey}
+import domain.{FullUrl, UrlKey}
 
 trait UrlKeyGenerator {
   def generate(fullUrl: FullUrl, seed: Long): UrlKey
