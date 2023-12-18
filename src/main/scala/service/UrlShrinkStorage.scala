@@ -19,21 +19,21 @@ trait UrlShrinkStorage {
 
   def getFullUrlByUrlKey(urlKey: UrlKey): IO[Either[AppError, FullUrl]]
 
-  def getTotalRecordCount: Long
+  def getTotalRecordCount: IO[Long]
 }
 
 object UrlShrinkStorage {
 
-  private final class DatabaseImpl(urlShrinkSql: UrlShrinkSql, transactor: Transactor[IO], urlKeyGenerator: UrlKeyGenerator) extends UrlShrinkStorage {
+  private final class DatabaseImpl(urlShrinkSql: UrlShrinkSql, transactor: Transactor[IO], urlKeyGenerator: UrlKeyGenerator[IO]) extends UrlShrinkStorage {
 
     // TODO: rewrite with good error handling and keys generation with squid library
-    override def getTotalRecordCount: Long = {
-      urlShrinkSql.getTotalRecordCount.transact(transactor).unsafeRunSync()
+    override def getTotalRecordCount: IO[Long] = {
+      urlShrinkSql.getTotalRecordCount.transact(transactor)
     }
 
     override def insertUrlRecord(fullUrl: FullUrl): IO[Either[AppError, ComputedUrlKey]] = {
       val key = urlKeyGenerator.generate(fullUrl, getTotalRecordCount)
-      urlShrinkSql.insertUrlKey(key, fullUrl)
+      urlShrinkSql.insertUrlKey(key.unsafeRunSync(), fullUrl)
         .transact(transactor)
         .attempt
         .map {
@@ -87,12 +87,12 @@ object UrlShrinkStorage {
       }
     }
 
-    override def getTotalRecordCount: Long = {
+    override def getTotalRecordCount: IO[Long] = {
       storage.getTotalRecordCount
     }
   }
 
-  def make(sql: UrlShrinkSql, transactor: Transactor[IO], urlKeyGenerator: UrlKeyGenerator): UrlShrinkStorage = {
+  def make(sql: UrlShrinkSql, transactor: Transactor[IO], urlKeyGenerator: UrlKeyGenerator[IO]): UrlShrinkStorage = {
     //    new DatabaseImpl(sql, transactor, urlKeyGenerator)
     val logs: Make[IO] = Logging.Make.plain[IO]
     implicit val logging: Id[Logging[IO]] = logs.forService[UrlShrinkStorage]

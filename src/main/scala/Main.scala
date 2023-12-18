@@ -33,7 +33,7 @@ object Application extends IOApp {
         db.password
       )
       sql = UrlShrinkSql.make
-      urlKeyGenerator = UrlKeyGenerator.make
+      urlKeyGenerator = UrlKeyGenerator.make[IO]
       storage = UrlShrinkStorage.make(sql, transactor, urlKeyGenerator)
       controller = UrlShrinkController.make(storage)
 
