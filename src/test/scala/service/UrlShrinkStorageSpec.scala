@@ -11,6 +11,7 @@ import doobie.util.transactor.Transactor
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import pureconfig.ConfigSource
+import domain.Errors.FullUrlNotFound
 
 class UrlShrinkStorageSpec extends AnyFlatSpec with Matchers {
   def loadStorage(): UrlShrinkStorage = {
@@ -29,13 +30,16 @@ class UrlShrinkStorageSpec extends AnyFlatSpec with Matchers {
 
   val storage: UrlShrinkStorage = loadStorage()
 
-  "UrlShrinkStorage" should "insert new url record and return created url key" in {
+  "insertUrlRecord" should "insert new url record and return created url key" in {
     val fullUrl = FullUrl("http://insertion_test1.com")
     val result = storage.insertUrlRecord(fullUrl).unsafeRunSync()
     result match {
       case Left(_) => fail("UrlShrinkStorage.insertUrlRecord should return Right")
-      case Right(ExistingUrlKey(key)) => fail(s"UrlShrinkStorage.insertUrlRecord with new record" +
-        s" should return CreatedUrlKey, but returned ExistingUrlKey($key)")
+      case Right(ExistingUrlKey(key)) =>
+        fail(
+          s"UrlShrinkStorage.insertUrlRecord with new record" +
+            s" should return CreatedUrlKey, but returned ExistingUrlKey($key)"
+        )
       case Right(CreatedUrlKey(key)) => succeed
     }
   }
@@ -48,13 +52,16 @@ class UrlShrinkStorageSpec extends AnyFlatSpec with Matchers {
     } yield secondInsertionResult
     result.unsafeRunSync() match {
       case Left(_) => fail("UrlShrinkStorage.insertUrlRecord should return Right")
-      case Right(CreatedUrlKey(key)) => fail(s"UrlShrinkStorage.insertUrlRecord with existing record" +
-        s" should return ExistingUrlKey, but returned CreatedUrlKey($key)")
+      case Right(CreatedUrlKey(key)) =>
+        fail(
+          s"UrlShrinkStorage.insertUrlRecord with existing record" +
+            s" should return ExistingUrlKey, but returned CreatedUrlKey($key)"
+        )
       case Right(ExistingUrlKey(key)) => succeed
     }
   }
 
-  it should "find the same FullUrl as inserted before" in {
+  "getFullUrlByKey" should "find the same FullUrl as inserted before" in {
     val fullUrl = FullUrl("http://example.com")
     val result = for {
       resp <- storage.insertUrlRecord(fullUrl)
@@ -62,5 +69,10 @@ class UrlShrinkStorageSpec extends AnyFlatSpec with Matchers {
       computedFullUrl <- storage.getFullUrlByUrlKey(UrlKey(urlKeyString))
     } yield computedFullUrl
     result.unsafeRunSync() shouldBe Right(fullUrl)
+  }
+
+  it should "throws error if url key is not found" in {
+    val result = storage.getFullUrlByUrlKey(UrlKey("not_found_key"))
+    result.unsafeRunSync() shouldBe Left(FullUrlNotFound())
   }
 }

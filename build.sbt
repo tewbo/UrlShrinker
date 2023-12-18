@@ -1,5 +1,3 @@
-import Dependencies.*
-
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
 ThisBuild / scalaVersion := "2.13.12"
@@ -45,4 +43,11 @@ lazy val root = (project in file("."))
   )
 
 dependencyOverrides += "io.circe" %% "circe-core" % "0.14.3"
-lazy val endpoint = project
+scalacOptions ++= Seq("-Ymacro-annotations")
+
+enablePlugins(UniversalPlugin)
+enablePlugins(DockerPlugin)
+enablePlugins(JavaAppPackaging)
+
+dockerExposedPorts ++= Seq(80)
+dockerBaseImage := "openjdk:17-jdk-slim"

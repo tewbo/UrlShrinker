@@ -7,7 +7,10 @@ import doobie.implicits._
 import service.UrlKeyGenerator
 
 trait UrlShrinkSql {
-  def insertUrlKey(fullUrl: FullUrl, urlKeyGenerator: UrlKeyGenerator[ConnectionIO]): doobie.ConnectionIO[ComputedUrlKey]
+  def insertUrlKey(
+    fullUrl: FullUrl,
+    urlKeyGenerator: UrlKeyGenerator[ConnectionIO]
+  ): doobie.ConnectionIO[ComputedUrlKey]
 
   def getUrlKeyByFullUrl(fullUrl: FullUrl): ConnectionIO[Option[UrlKey]]
 
@@ -43,14 +46,22 @@ object UrlShrinkSql {
 
     import sqls._
 
-    override def insertUrlKey(fullUrl: FullUrl, urlKeyGenerator: UrlKeyGenerator[ConnectionIO]): ConnectionIO[ComputedUrlKey] =
+    override def insertUrlKey(
+      fullUrl: FullUrl,
+      urlKeyGenerator: UrlKeyGenerator[ConnectionIO]
+    ): ConnectionIO[ComputedUrlKey] =
       getUrlKeyByFullUrlSql(fullUrl).option.flatMap {
         case Some(foundUrlKey) =>
           ExistingUrlKey(foundUrlKey.key).pure[ConnectionIO].map[ComputedUrlKey](identity)
         case None =>
-          urlKeyGenerator.generate(getTotalRecordCount).flatMap(urlKey => insertUrlKeySql(urlKey, fullUrl)
-            .withUniqueGeneratedKeys[UrlRecordId]("id")
-            .map(id => CreatedUrlKey(urlKey.key)).map[ComputedUrlKey](identity))
+          urlKeyGenerator
+            .generate(getTotalRecordCount)
+            .flatMap(urlKey =>
+              insertUrlKeySql(urlKey, fullUrl)
+                .withUniqueGeneratedKeys[UrlRecordId]("id")
+                .map(id => CreatedUrlKey(urlKey.key))
+                .map[ComputedUrlKey](identity)
+            )
       }
 
     override def getUrlKeyByFullUrl(fullUrl: FullUrl): ConnectionIO[Option[UrlKey]] =

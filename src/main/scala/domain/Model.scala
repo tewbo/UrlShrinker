@@ -4,7 +4,6 @@ import derevo.circe.{decoder, encoder}
 import derevo.derive
 import sttp.tapir.{Codec, CodecFormat, Schema}
 
-
 @derive(encoder, decoder)
 case class FullUrl(url: String)
 
@@ -45,6 +44,3 @@ case class ExistingUrlKey(key: String) extends ComputedUrlKey
 case class CreatedUrlKey(key: String) extends ComputedUrlKey
 
 case class UrlRecordId(id: Long)
-
-
-

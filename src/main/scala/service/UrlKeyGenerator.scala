@@ -1,9 +1,8 @@
 package service
 
 import cats.Monad
-import cats.effect.IO
 import cats.implicits.toFunctorOps
-import domain.{FullUrl, UrlKey}
+import domain.UrlKey
 import sqids.Sqids
 
 trait UrlKeyGenerator[F[_]] {

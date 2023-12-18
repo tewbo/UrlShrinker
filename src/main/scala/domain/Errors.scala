@@ -9,26 +9,19 @@ import sttp.tapir.Schema
 object Errors {
   @derive(encoder, decoder)
   sealed abstract class AppError(
-                                  val message: String,
-                                  val cause: Option[Throwable] = None
-                                )
+    val message: String,
+    val cause: Option[Throwable] = None
+  )
 
   @derive(encoder, decoder)
-  case class UrlKeyAlreadyExists()
-    extends AppError("UrlKey with same name and date already exists")
-
-  @derive(encoder, decoder)
-  case class FullUrlNotFound()
-    extends AppError("Full url not found")
-
+  case class FullUrlNotFound() extends AppError("Full url not found")
 
   @derive(encoder, decoder)
   case class InternalError(
-                            cause0: Throwable
-                          ) extends AppError("Internal error", cause0.some)
+    cause0: Throwable
+  ) extends AppError("Internal error", cause0.some)
   @derive(encoder, decoder)
-  case class DecodedError(override val message: String)
-    extends AppError(message = message)
+  case class DecodedError(override val message: String) extends AppError(message = message)
 
   implicit val throwableEncoder: Encoder[Throwable] =
     Encoder.encodeString.contramap(_.getMessage)
