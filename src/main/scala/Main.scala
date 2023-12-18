@@ -46,8 +46,7 @@ object Main extends IOApp {
 
       routes = Http4sServerInterpreter[IO]().toRoutes(SwaggerUI[IO](openApi) ++ controller.all)
       httpApp = Router("/" -> routes).orNotFound
-      service: EmberServerBuilder[IO]
-        = EmberServerBuilder
+      service: EmberServerBuilder[IO] = EmberServerBuilder
         .default[IO]
         .withHost(Host.fromString(server.host).getOrElse(host"0.0.0.0"))
         .withPort(Port.fromInt(server.port).getOrElse(port"1235"))
