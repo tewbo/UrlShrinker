@@ -37,40 +37,10 @@ libraryDependencies ++= Seq(
 
 lazy val root = (project in file("."))
   .settings(
-    name := "UrlShrinker",
-    /*libraryDependencies ++= List(
-      scalaTest,
-      newtype,
-      `cats-effect`,
-      h2,
-      logback,
-      liquibase,
-      quill,
-      pureconfig,
-      doobie.postgres,
-      http4s.ember,
-      tapir.http4s
-    )
-//      ++ circe.modules
-      ++ tapir.modules ++ doobie.modules ++ sttp.modules ++ tethys.modules ++ tofu.modules ++ tofu.loggingModules,*/
-    scalacOptions += "-Ymacro-annotations",
+    name := "UrlShrinker",  scalacOptions += "-Ymacro-annotations",
     addCompilerPlugin("org.typelevel" % "kind-projector" % "0.13.2" cross CrossVersion.full),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
   )
-//  .aggregate(endpoint, server, client)
 
 dependencyOverrides += "io.circe" %% "circe-core" % "0.14.3"
 lazy val endpoint = project
-
-/*lazy val server = (project in file("server"))
-  .dependsOn(endpoint)
-  .settings(libraryDependencies += "com.softwaremill.sttp.tapir" %% "tapir-akka-http-server" % "1.0.3")
-
-lazy val client = (project in file("client"))
-  .dependsOn(endpoint)
-  .settings(libraryDependencies += "com.softwaremill.sttp.tapir" %% "tapir-sttp-client" % "1.0.3")
-*/
-//lazy val root = (project in file("."))
-//  .settings(
-//    name := "UrlShrinker"
-//  )

@@ -20,7 +20,7 @@ object UrlShrinkController {
         storage.insertUrlRecord(correctUrl)
       }
 
-    override def expandUrl: ServerEndpoint[Any, IO] = {   // TODO: reject infinite redirections
+    override def expandUrl: ServerEndpoint[Any, IO] = {
       endpoints.expandUrl.serverLogic { case key =>
         storage.getFullUrlByUrlKey(key)
       }
