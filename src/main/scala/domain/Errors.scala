@@ -6,7 +6,7 @@ import derevo.derive
 import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema
 
-object errors {
+object Errors {
   @derive(encoder, decoder)
   sealed abstract class AppError(
                                   val message: String,

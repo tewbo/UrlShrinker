@@ -32,6 +32,8 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui" % "1.4.0",
   "org.http4s" %% "http4s-dsl" % "0.23.18",
   "org.http4s" %% "http4s-blaze-client" % "0.23.14",
+  "org.sqids" %% "sqids" % "0.5.0",
+  "org.scalatest" %% "scalatest" % "3.2.17" % Test,
 )
 
 

@@ -1,13 +1,13 @@
 package controller
 
 import domain.{ComputedUrlKey, CreatedUrlKey, ExistingUrlKey, FullUrl, RequestContext, UrlKey}
-import domain.errors.AppError
+import domain.Errors.AppError
 import sttp.model.StatusCode
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe._
 import sttp.tapir._
 
-object endpoints {
+object Endpoints {
   val shrinkUrl: Endpoint[Unit, (RequestContext, String), AppError, ComputedUrlKey, Any] = {
     endpoint.post
       .in("shrink")

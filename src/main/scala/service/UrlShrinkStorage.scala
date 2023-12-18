@@ -6,7 +6,7 @@ import cats.effect.unsafe.implicits.global
 import cats.implicits.{catsSyntaxEitherId, catsSyntaxOptionId}
 import dao.UrlShrinkSql
 import domain.{ComputedUrlKey, FullUrl, UrlKey}
-import domain.errors._
+import domain.Errors._
 import doobie.ConnectionIO
 import doobie.syntax.connectionio._
 import doobie.util.transactor.Transactor

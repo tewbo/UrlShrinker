@@ -15,13 +15,13 @@ trait UrlShrinkController {
 object UrlShrinkController {
   final class Impl(storage: UrlShrinkStorage) extends UrlShrinkController {
     override val shrinkUrl: ServerEndpoint[Any, IO] =
-      endpoints.shrinkUrl.serverLogic { case (context, url) =>
+      Endpoints.shrinkUrl.serverLogic { case (context, url) =>
         val correctUrl = FullUrl(url)
         storage.insertUrlRecord(correctUrl)
       }
 
     override def expandUrl: ServerEndpoint[Any, IO] = {
-      endpoints.expandUrl.serverLogic { case key =>
+      Endpoints.expandUrl.serverLogic { case key =>
         storage.getFullUrlByUrlKey(key)
       }
     }

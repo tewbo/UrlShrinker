@@ -48,7 +48,7 @@ object UrlShrinkSql {
         case Some(foundUrlKey) =>
           ExistingUrlKey(foundUrlKey.key).pure[ConnectionIO].map[ComputedUrlKey](identity)
         case None =>
-          urlKeyGenerator.generate(fullUrl, getTotalRecordCount).flatMap(urlKey => insertUrlKeySql(urlKey, fullUrl)
+          urlKeyGenerator.generate(getTotalRecordCount).flatMap(urlKey => insertUrlKeySql(urlKey, fullUrl)
             .withUniqueGeneratedKeys[UrlRecordId]("id")
             .map(id => CreatedUrlKey(urlKey.key)).map[ComputedUrlKey](identity))
       }
