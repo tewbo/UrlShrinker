@@ -17,10 +17,10 @@ import sttp.tapir.server.http4s.Http4sServerInterpreter
 import sttp.tapir.swagger.SwaggerUI
 import tofu.logging.Logging
 
-object Application extends IOApp {
+object Main extends IOApp {
   private type Init[A] = IO[A]
 
-  private val logger = Logging.Make.plain[IO].forService[Application.type]
+  private val logger = Logging.Make.plain[IO].forService[Main.type]
 
   override def run(args: List[String]): IO[ExitCode] = {
     (for {
