@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  postgresdb:
+    image: postgres:15.3-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /data/postgres
+      POSTGRES_DB: urls
+    ports:
+      - "5431:5432"
+    volumes:
+      - postgres:/data/postgres
+
+  urlshrinker:
+    image: docker.io/library/urlshrinker:0.1.0-SNAPSHOT
+    environment:
+      DB_URL: postgresdb
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_NAME: urls
+    ports:
+      - "9000:8080"
+    depends_on:
+      - postgresdb
+volumes:
+  postgres:
