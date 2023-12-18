@@ -2,8 +2,6 @@ ThisBuild / version := "0.1.0-SNAPSHOT"
 
 ThisBuild / scalaVersion := "2.13.12"
 
-val circeVersion = "0.14.3"
-
 libraryDependencies ++= Seq(
   "com.softwaremill.sttp.tapir" %% "tapir-core" % "1.4.0",
   "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % "1.4.0",
@@ -42,7 +40,7 @@ lazy val root = (project in file("."))
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
   )
 
-dependencyOverrides += "io.circe" %% "circe-core" % "0.14.3"
+dependencyOverrides += "io.circe" %% "circe-core" % "0.14.5"
 scalacOptions ++= Seq("-Ymacro-annotations")
 
 enablePlugins(UniversalPlugin)

@@ -1,11 +1,11 @@
-version: '3.5'
+version: '3.8'
 
 services:
   postgresdb:
-    image: postgres
+    image: postgres:15.3-alpine
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: pass1234
+      POSTGRES_PASSWORD: postgres
       PGDATA: /data/postgres
       POSTGRES_DB: urls
     ports:
@@ -18,7 +18,7 @@ services:
     environment:
       DB_URL: postgresdb
       DB_USER: postgres
-      DB_PASS: pass1234
+      DB_PASS: postgres
       DB_NAME: urls
     ports:
       - "9000:8080"

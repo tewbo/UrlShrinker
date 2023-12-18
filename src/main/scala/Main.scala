@@ -1,6 +1,6 @@
 import cats.effect.kernel.Sync
 import cats.effect.{ExitCode, IO, IOApp}
-import com.comcast.ip4s.{IpLiteralSyntax, Port}
+import com.comcast.ip4s.{IpLiteralSyntax, Port, Host}
 import config.{DbConf, ServerConf}
 import controller.UrlShrinkController
 import dao.UrlShrinkSql
@@ -49,6 +49,7 @@ object Main extends IOApp {
       service: EmberServerBuilder[IO]
         = EmberServerBuilder
         .default[IO]
+        .withHost(Host.fromString(server.host).getOrElse(host"0.0.0.0"))
         .withPort(Port.fromInt(server.port).getOrElse(port"1235"))
         .withHttpApp(httpApp)
     } yield service).flatMap(_.build.useForever).as(ExitCode.Success)
