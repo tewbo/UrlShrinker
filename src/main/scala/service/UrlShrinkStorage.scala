@@ -28,7 +28,6 @@ object UrlShrinkStorage {
   private final class DatabaseImpl(urlShrinkSql: UrlShrinkSql,
                                    transactor: Transactor[IO],
                                    urlKeyGenerator: UrlKeyGenerator[ConnectionIO]) extends UrlShrinkStorage {
-    // TODO: rewrite with keys generation with squid library
     override def getTotalRecordCount: IO[Either[AppError, Long]] = {
       urlShrinkSql.getTotalRecordCount.transact(transactor).attempt.map {
         case Left(th) => InternalError(th).asLeft

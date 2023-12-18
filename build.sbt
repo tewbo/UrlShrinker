@@ -51,3 +51,5 @@ enablePlugins(JavaAppPackaging)
 
 dockerExposedPorts ++= Seq(80)
 dockerBaseImage := "openjdk:17-jdk-slim"
+
+Compile / mainClass := Some("Main")
