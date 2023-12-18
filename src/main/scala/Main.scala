@@ -4,6 +4,7 @@ import com.comcast.ip4s.{IpLiteralSyntax, Port}
 import config.{DbConf, ServerConf}
 import controller.UrlShrinkController
 import dao.UrlShrinkSql
+import doobie.ConnectionIO
 import doobie.util.transactor.Transactor
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.implicits._
@@ -33,7 +34,7 @@ object Application extends IOApp {
         db.password
       )
       sql = UrlShrinkSql.make
-      urlKeyGenerator = UrlKeyGenerator.make[IO]
+      urlKeyGenerator = UrlKeyGenerator.make[ConnectionIO]
       storage = UrlShrinkStorage.make(sql, transactor, urlKeyGenerator)
       controller = UrlShrinkController.make(storage)
 

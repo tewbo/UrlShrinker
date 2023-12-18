@@ -7,6 +7,7 @@ import cats.implicits.{catsSyntaxEitherId, catsSyntaxOptionId}
 import dao.UrlShrinkSql
 import domain.{ComputedUrlKey, FullUrl, UrlKey}
 import domain.errors._
+import doobie.ConnectionIO
 import doobie.syntax.connectionio._
 import doobie.util.transactor.Transactor
 import tofu.logging.Logging
@@ -19,21 +20,24 @@ trait UrlShrinkStorage {
 
   def getFullUrlByUrlKey(urlKey: UrlKey): IO[Either[AppError, FullUrl]]
 
-  def getTotalRecordCount: IO[Long]
+  def getTotalRecordCount: IO[Either[AppError, Long]]
 }
 
 object UrlShrinkStorage {
 
-  private final class DatabaseImpl(urlShrinkSql: UrlShrinkSql, transactor: Transactor[IO], urlKeyGenerator: UrlKeyGenerator[IO]) extends UrlShrinkStorage {
-
-    // TODO: rewrite with good error handling and keys generation with squid library
-    override def getTotalRecordCount: IO[Long] = {
-      urlShrinkSql.getTotalRecordCount.transact(transactor)
+  private final class DatabaseImpl(urlShrinkSql: UrlShrinkSql,
+                                   transactor: Transactor[IO],
+                                   urlKeyGenerator: UrlKeyGenerator[ConnectionIO]) extends UrlShrinkStorage {
+    // TODO: rewrite with keys generation with squid library
+    override def getTotalRecordCount: IO[Either[AppError, Long]] = {
+      urlShrinkSql.getTotalRecordCount.transact(transactor).attempt.map {
+        case Left(th) => InternalError(th).asLeft
+        case Right(count) => count.asRight
+      }
     }
 
     override def insertUrlRecord(fullUrl: FullUrl): IO[Either[AppError, ComputedUrlKey]] = {
-      val key = urlKeyGenerator.generate(fullUrl, getTotalRecordCount)
-      urlShrinkSql.insertUrlKey(key.unsafeRunSync(), fullUrl)
+      urlShrinkSql.insertUrlKey(fullUrl, urlKeyGenerator)
         .transact(transactor)
         .attempt
         .map {
@@ -87,12 +91,12 @@ object UrlShrinkStorage {
       }
     }
 
-    override def getTotalRecordCount: IO[Long] = {
+    override def getTotalRecordCount: IO[Either[AppError, Long]] = {
       storage.getTotalRecordCount
     }
   }
 
-  def make(sql: UrlShrinkSql, transactor: Transactor[IO], urlKeyGenerator: UrlKeyGenerator[IO]): UrlShrinkStorage = {
+  def make(sql: UrlShrinkSql, transactor: Transactor[IO], urlKeyGenerator: UrlKeyGenerator[ConnectionIO]): UrlShrinkStorage = {
     //    new DatabaseImpl(sql, transactor, urlKeyGenerator)
     val logs: Make[IO] = Logging.Make.plain[IO]
     implicit val logging: Id[Logging[IO]] = logs.forService[UrlShrinkStorage]
