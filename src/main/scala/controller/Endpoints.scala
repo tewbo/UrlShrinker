@@ -12,7 +12,7 @@ object Endpoints {
     endpoint.post
       .in("shrink")
       .in(header[RequestContext]("X-Request-Id"))
-      .in(jsonBody[String]) // TODO: ask how to parse full url
+      .in(jsonBody[String])
       .errorOut(jsonBody[AppError])
       .out(
         oneOf[ComputedUrlKey](
@@ -24,9 +24,8 @@ object Endpoints {
   val expandUrl: Endpoint[Unit, UrlKey, AppError, FullUrl, Any] = {
     endpoint.get
       .in(path[UrlKey])
-//        .in(header[RequestContext]("X-Request-Id"))   // TODO: ask about request-id
       .errorOut(jsonBody[AppError])
-      .out(header[FullUrl]("Location")) // TODO: add russian letters support
+      .out(header[FullUrl]("Location"))
       .out(statusCode(StatusCode.Found))
   }
 }
