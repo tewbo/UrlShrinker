@@ -49,7 +49,7 @@ enablePlugins(UniversalPlugin)
 enablePlugins(DockerPlugin)
 enablePlugins(JavaAppPackaging)
 
-dockerExposedPorts ++= Seq(80)
+//dockerExposedPorts ++= Seq(80, 8080)
 dockerBaseImage := "openjdk:17-jdk-slim"
 
 Compile / mainClass := Some("Main")

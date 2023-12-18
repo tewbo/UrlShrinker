@@ -49,7 +49,7 @@ object Main extends IOApp {
       service: EmberServerBuilder[IO]
         = EmberServerBuilder
         .default[IO]
-        .withPort(Port.fromInt(server.port).getOrElse(port"8080"))
+        .withPort(Port.fromInt(server.port).getOrElse(port"1235"))
         .withHttpApp(httpApp)
     } yield service).flatMap(_.build.useForever).as(ExitCode.Success)
   }
