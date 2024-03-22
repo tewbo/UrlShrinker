@@ -1,9 +1,10 @@
 import cats.effect.kernel.Sync
 import cats.effect.{ExitCode, IO, IOApp}
-import com.comcast.ip4s.{IpLiteralSyntax, Port}
+import com.comcast.ip4s.{IpLiteralSyntax, Port, Host}
 import config.{DbConf, ServerConf}
 import controller.UrlShrinkController
 import dao.UrlShrinkSql
+import doobie.ConnectionIO
 import doobie.util.transactor.Transactor
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.implicits._
@@ -16,10 +17,10 @@ import sttp.tapir.server.http4s.Http4sServerInterpreter
 import sttp.tapir.swagger.SwaggerUI
 import tofu.logging.Logging
 
-object Application extends IOApp {
+object Main extends IOApp {
   private type Init[A] = IO[A]
 
-  private val logger = Logging.Make.plain[IO].forService[Application.type]
+  private val logger = Logging.Make.plain[IO].forService[Main.type]
 
   override def run(args: List[String]): IO[ExitCode] = {
     (for {
@@ -33,7 +34,7 @@ object Application extends IOApp {
         db.password
       )
       sql = UrlShrinkSql.make
-      urlKeyGenerator = UrlKeyGenerator.make
+      urlKeyGenerator = UrlKeyGenerator.make[ConnectionIO]
       storage = UrlShrinkStorage.make(sql, transactor, urlKeyGenerator)
       controller = UrlShrinkController.make(storage)
 
@@ -45,10 +46,10 @@ object Application extends IOApp {
 
       routes = Http4sServerInterpreter[IO]().toRoutes(SwaggerUI[IO](openApi) ++ controller.all)
       httpApp = Router("/" -> routes).orNotFound
-      service: EmberServerBuilder[IO]
-        = EmberServerBuilder
+      service: EmberServerBuilder[IO] = EmberServerBuilder
         .default[IO]
-        .withPort(Port.fromInt(server.port).getOrElse(port"8080"))
+        .withHost(Host.fromString(server.host).getOrElse(host"0.0.0.0"))
+        .withPort(Port.fromInt(server.port).getOrElse(port"1235"))
         .withHttpApp(httpApp)
     } yield service).flatMap(_.build.useForever).as(ExitCode.Success)
   }

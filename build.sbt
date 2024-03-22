@@ -1,10 +1,6 @@
-import Dependencies.*
-
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
 ThisBuild / scalaVersion := "2.13.12"
-
-val circeVersion = "0.14.3"
 
 libraryDependencies ++= Seq(
   "com.softwaremill.sttp.tapir" %% "tapir-core" % "1.4.0",
@@ -32,45 +28,26 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui" % "1.4.0",
   "org.http4s" %% "http4s-dsl" % "0.23.18",
   "org.http4s" %% "http4s-blaze-client" % "0.23.14",
+  "org.sqids" %% "sqids" % "0.5.0",
+  "org.scalatest" %% "scalatest" % "3.2.17" % Test,
 )
 
 
 lazy val root = (project in file("."))
   .settings(
-    name := "UrlShrinker",
-    /*libraryDependencies ++= List(
-      scalaTest,
-      newtype,
-      `cats-effect`,
-      h2,
-      logback,
-      liquibase,
-      quill,
-      pureconfig,
-      doobie.postgres,
-      http4s.ember,
-      tapir.http4s
-    )
-//      ++ circe.modules
-      ++ tapir.modules ++ doobie.modules ++ sttp.modules ++ tethys.modules ++ tofu.modules ++ tofu.loggingModules,*/
-    scalacOptions += "-Ymacro-annotations",
+    name := "UrlShrinker",  scalacOptions += "-Ymacro-annotations",
     addCompilerPlugin("org.typelevel" % "kind-projector" % "0.13.2" cross CrossVersion.full),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
   )
-//  .aggregate(endpoint, server, client)
 
-dependencyOverrides += "io.circe" %% "circe-core" % "0.14.3"
-lazy val endpoint = project
+dependencyOverrides += "io.circe" %% "circe-core" % "0.14.5"
+scalacOptions ++= Seq("-Ymacro-annotations")
 
-/*lazy val server = (project in file("server"))
-  .dependsOn(endpoint)
-  .settings(libraryDependencies += "com.softwaremill.sttp.tapir" %% "tapir-akka-http-server" % "1.0.3")
+enablePlugins(UniversalPlugin)
+enablePlugins(DockerPlugin)
+enablePlugins(JavaAppPackaging)
 
-lazy val client = (project in file("client"))
-  .dependsOn(endpoint)
-  .settings(libraryDependencies += "com.softwaremill.sttp.tapir" %% "tapir-sttp-client" % "1.0.3")
-*/
-//lazy val root = (project in file("."))
-//  .settings(
-//    name := "UrlShrinker"
-//  )
+//dockerExposedPorts ++= Seq(80, 8080)
+dockerBaseImage := "openjdk:17-jdk-slim"
+
+Compile / mainClass := Some("Main")

@@ -1,7 +1,7 @@
 package controller
 
 import cats.effect.IO
-import model._
+import domain.FullUrl
 import service.UrlShrinkStorage
 import sttp.tapir.server.ServerEndpoint
 
@@ -15,13 +15,13 @@ trait UrlShrinkController {
 object UrlShrinkController {
   final class Impl(storage: UrlShrinkStorage) extends UrlShrinkController {
     override val shrinkUrl: ServerEndpoint[Any, IO] =
-      endpoints.shrinkUrl.serverLogic { case (context, url) =>
+      Endpoints.shrinkUrl.serverLogic { case (context, url) =>
         val correctUrl = FullUrl(url)
         storage.insertUrlRecord(correctUrl)
       }
 
-    override def expandUrl: ServerEndpoint[Any, IO] = {   // TODO: reject infinite redirections
-      endpoints.expandUrl.serverLogic { case key =>
+    override def expandUrl: ServerEndpoint[Any, IO] = {
+      Endpoints.expandUrl.serverLogic { case key =>
         storage.getFullUrlByUrlKey(key)
       }
     }

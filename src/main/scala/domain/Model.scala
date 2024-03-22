@@ -1,9 +1,8 @@
-package model
+package domain
 
 import derevo.circe.{decoder, encoder}
 import derevo.derive
 import sttp.tapir.{Codec, CodecFormat, Schema}
-
 
 @derive(encoder, decoder)
 case class FullUrl(url: String)
@@ -39,12 +38,9 @@ sealed trait ComputedUrlKey {
 }
 
 @derive(encoder, decoder)
-case class ExistingUrlKey(key: String) extends ComputedUrlKey // todo: add ability to accept case class as argument
+case class ExistingUrlKey(key: String) extends ComputedUrlKey
 
 @derive(encoder, decoder)
 case class CreatedUrlKey(key: String) extends ComputedUrlKey
 
 case class UrlRecordId(id: Long)
-
-
-

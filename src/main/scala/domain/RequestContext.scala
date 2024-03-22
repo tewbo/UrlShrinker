@@ -1,9 +1,11 @@
 package domain
 
+import derevo.derive
 import sttp.tapir.Codec
 import sttp.tapir.CodecFormat.TextPlain
+import tofu.logging.derivation.loggable
 
-//@derive(loggable)
+@derive(loggable)
 final case class RequestContext(requestId: String)
 object RequestContext {
   implicit val codec: Codec[String, RequestContext, TextPlain] =

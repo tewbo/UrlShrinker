@@ -1,17 +1,21 @@
 package service
 
-import model.{FullUrl, UrlKey}
+import cats.Monad
+import cats.implicits.toFunctorOps
+import domain.UrlKey
+import sqids.Sqids
 
-trait UrlKeyGenerator {
-  def generate(fullUrl: FullUrl, seed: Long): UrlKey
+trait UrlKeyGenerator[F[_]] {
+  def generate(seed: F[Long]): F[UrlKey]
 }
 
 object UrlKeyGenerator {
-  private class UrlKeyGeneratorImpl() extends UrlKeyGenerator {
-    override def generate(fullUrl: FullUrl, seed: Long): UrlKey = {
-      UrlKey(seed.toString)
+  private class SqidsUrlKeyGeneratorImpl[F[_] : Monad]() extends UrlKeyGenerator[F] {
+    override def generate(seed: F[Long]): F[UrlKey] = {
+      val sqids = Sqids.default
+      seed.map(sqids.encodeUnsafeString(_)).map(UrlKey(_))
     }
   }
 
-  def make: UrlKeyGenerator = new UrlKeyGeneratorImpl()
+  def make[F[_]: Monad]: UrlKeyGenerator[F] = new SqidsUrlKeyGeneratorImpl[F]()
 }
